@@ -1,6 +1,6 @@
 ### User ###
 
-output
+data
 *.conf
 *.ini
 *.yaml
