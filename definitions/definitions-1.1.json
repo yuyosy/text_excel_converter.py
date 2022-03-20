@@ -1,0 +1,118 @@
+{
+    "schema_version": "parameters_sheet.schema.1.0",
+    "name": "ParameterSheet",
+    "date_updated": "2021/01/20",
+    "format_version": "1.1",
+    "format_compatibility": "0.9",
+    "format_definition_cell": {
+        "sheet": "BookInfo",
+        "cell": "B2"
+    },
+    "includes": [
+        "test",
+        "sheet_info",
+        "applicant_info"
+    ],
+    "definitions": {
+        "test": {
+            "type": "key-value",
+            "sheet": "BookInfo",
+            "columns": "C:D",
+            "begin_row": 4,
+            "key_col": "C",
+            "value_col": 1,
+            "parent": "test.value.format",
+            "data": {
+                "sss": "String",
+                "bbb": {
+                    "key": "Bool",
+                    "format": {
+                        "true": "used",
+                        "false": "unused"
+                    }
+                },
+                "asd": {
+                    "key": "Bool-f",
+                    "format": {
+                        "true": "used",
+                        "false": "unused"
+                    }
+                },
+                "iii": {
+                    "key": "Int",
+                    "format": "int"
+                },
+                "fff": {
+                    "key": "Float",
+                    "format": "float"
+                },
+                "ddd": {
+                    "key": "Dict",
+                    "format": {
+                        "array": ",|\n"
+                    }
+                },
+                "noty": {
+                    "key": "None",
+                    "format": {
+                        "none": "choose"
+                    }
+                }
+            }
+        },
+        "sheet_info": {
+            "type": "table",
+            "sheet": "Sheet1",
+            "columns": "F:O",
+            "header_row": 5,
+            "begin_row": 6,
+            "key_col": 0,
+            "value_col": 1,
+            "parent": "params.cloud",
+            "data": {
+                "no": "No",
+                "type": "Type",
+                "name": "Name",
+                "value": {
+                    "key": "Value",
+                    "format": {
+                        "true": "use",
+                        "false": "unused"
+                    }
+                },
+                "ip_np": "ip-np",
+                "ip_ns": "ip-ns",
+                "ip_cp": "ip-cp",
+                "ip_cs": "ip-cs",
+                "ja": "日本語",
+                "line": "改行\n含める"
+            }
+        },
+        "applicant_info": {
+            "type": "key-value",
+            "sheet": "Sheet1",
+            "columns": "B:C",
+            "begin_row": 2,
+            "key_col": 0,
+            "value_col": 1,
+            "parent": "parameters.info",
+            "data": {
+                "a01": "AAA1",
+                "a02": "AAA2",
+                "a03": "AAA3",
+                "a04": "AAA4",
+                "a05": "AAA5",
+                "a06": "AAA6",
+                "a07": "AAA7",
+                "a08": "AAA8",
+                "a09": "AAA9",
+                "a10": "AAA10",
+                "a11": "AAA11",
+                "a12": "AAA12",
+                "a13": "AAA13",
+                "a14": "AAA14",
+                "a15": "AAA15"
+            }
+        }
+    }
+}
