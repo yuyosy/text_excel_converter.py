@@ -39,7 +39,7 @@ class ExcelToText(Converter):
         for name in self.definition_data.includes:
             applogger.info(f'Processing: {name}')
             definitions = self.definition_data.definitions.get(name, None)
-            if not definitions or not self.read_action.get(definitions.type):
+            if not definitions or not self.read_action.get(definitions.type) or workbook[definitions.sheet] is None:
                 continue
             read_action: Callable[[Workbook, Definitions], Dict[str, Any]] = self.read_action.get(definitions.type, lambda: print('Unknown function'))
             for k, v in read_action(workbook, definitions):
