@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from config.config_class import ConfigApp
 from dataobject.data_object import DataObject
 
-from .definitions_class import DefinitionsData
+from .class_definitions import DefinitionsData
 
 
 @dataclass

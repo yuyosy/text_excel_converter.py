@@ -8,7 +8,7 @@ from openpyxl.workbook.workbook import Workbook
 
 from .check_version import check_workbook_version
 from .converter import Converter
-from .definitions_class import Definitions
+from .class_definitions import Definitions
 from .load_definitions import load_definisions
 from .read_keyvalue import read_keyvalue
 from .read_table import read_table

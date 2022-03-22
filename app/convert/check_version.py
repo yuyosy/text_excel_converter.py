@@ -9,7 +9,7 @@ from config.config_class import ConfigDefinitions
 from openpyxl import Workbook
 
 from .exceptions import DefinisionsFileException
-from .definitions_class import CellInfo, DefinisionsFileInfo
+from .class_definitions import CellInfo, DefinisionsFileInfo
 
 
 def check_workbook_version(workbook: Workbook, config: ConfigDefinitions) -> Tuple[Union[DefinisionsFileInfo, None], Union[DefinisionsFileInfo, None]]:

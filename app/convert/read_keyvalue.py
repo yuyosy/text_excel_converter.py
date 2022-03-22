@@ -3,7 +3,7 @@ from typing import Any, Generator, Tuple
 
 from openpyxl.workbook.workbook import Workbook
 
-from .definitions_class import Definitions
+from .class_definitions import Definitions
 from .escape_str import escape_str
 from .marshal_data_format import FormatType, marshalling
 from .util_convert import get_key_list

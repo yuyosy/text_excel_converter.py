@@ -2,7 +2,7 @@
 import json
 from dacite.core import from_dict
 
-from .definitions_class import DefinisionsFileInfo, DefinitionsData
+from .class_definitions import DefinisionsFileInfo, DefinitionsData
 
 
 def load_definisions(info: DefinisionsFileInfo) -> DefinitionsData:
