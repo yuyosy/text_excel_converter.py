@@ -3,3 +3,12 @@ class ConvertException(Exception):
 
 class DefinisionsFileException(ConvertException):
     pass
+
+class ExcelToTextException(ConvertException):
+    pass
+
+class TextToExcelException(ConvertException):
+    pass
+
+class DataOutputException(ConvertException):
+    pass
