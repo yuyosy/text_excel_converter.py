@@ -1,7 +1,7 @@
 config_string = """# Config
 name: default_config
 
-# アプリケーシ設定
+# アプリケーション設定
 
 presets:
     excel_to_text:
