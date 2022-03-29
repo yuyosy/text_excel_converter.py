@@ -68,13 +68,13 @@ def listup(config: ConfigDefinitions) -> List[DefinisionsFileInfo]:
         cell_info = CellInfo(def_cell_info.get('sheet', ''), def_cell_info.get('cell', ''))
 
         defs_file_info = DefinisionsFileInfo(
-            data.get('name'),
-            current_version,
-            StrictVersion(str(data.get('format_compatibility', '0.0'))),
-            file,
-            cell_info,
-            config.encoding,
-            data.get('date_updated', '')
+            name=data.get('name'),
+            version=current_version,
+            compatibility=StrictVersion(str(data.get('format_compatibility', '0.0'))),
+            filename=file,
+            version_def=cell_info,
+            encoding=config.encoding,
+            update_date=data.get('date_updated', '')
         )
 
         definisions_file_list.append(defs_file_info)
