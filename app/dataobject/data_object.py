@@ -47,7 +47,7 @@ class DataObject:
     # Like the built-in dict type.
 
     def set(self, key: str, value: Any = None) -> None:
-        self[key] = value
+        self._dotted_dict[key] = value
 
     def get(self, key: str, default: Any = None) -> Union[Dict[str, Any], Any]:
         return self._dotted_dict.get(key, default)
@@ -129,6 +129,8 @@ class DataObject:
 
     def _unflattern_items(self, data: Dict[str, Any], keys: List[str], value: Any) -> None:
         assert keys
+        if data is None:
+            return
         key = keys[0]
         if len(keys) == 1:
             if key in data:
