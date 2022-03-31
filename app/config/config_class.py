@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 
 @dataclass
@@ -30,7 +30,7 @@ class ConfigApp():
 @dataclass
 class ConfigLogging():
     version: int
-    root: Dict[str, Any]
+    root: Union[Dict[str, Any], None]
     loggers: Dict[str, Any]
     handlers: Dict[str, Any]
     formatters: Dict[str, Any]

@@ -22,11 +22,14 @@ presets:
 logging:
     version: 1
     root:
-        handlers: [filehandler]
+        level: NOTSET
     loggers:
         app:
-            handlers: [stdiohandler]
+            handlers: [stdiohandler,filehandler]
             qualname: app
+        file:
+            handlers: [filehandler]
+            qualname: file
     handlers:
         stdiohandler:
             class: logging.StreamHandler

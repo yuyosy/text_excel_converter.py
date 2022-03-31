@@ -5,9 +5,10 @@ from config.config_class import ConfigLogging
 
 default_config = {
     'version': 1,
-    'root': {'level': 'NOTSET', 'handlers': ['filehandler']},
+    'root': {'level': 'NOTSET'},
     'loggers': {
-        'app': {'level': 'NOTSET', 'handlers': ['stdiohandler'], 'qualname': 'app'}
+        'app': {'level': 'NOTSET', 'handlers': ['stdiohandler', 'filehandler'], 'qualname': 'app'},
+        'file': {'level': 'NOTSET', 'handlers': ['filehandler'], 'qualname': 'file'}
     },
     'handlers': {
         'stdiohandler': {'class': 'logging.StreamHandler', 'level': 'NOTSET', 'formatter': 'basic', 'stream': 'ext://sys.stdout'},
