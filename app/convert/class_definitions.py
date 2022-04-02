@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-from distutils.version import StrictVersion
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-
+from util.version_value import VersionValue
 
 @dataclass
 class CellInfo():
@@ -14,8 +13,8 @@ class CellInfo():
 @dataclass
 class DefinisionsFileInfo():
     name: str
-    version: StrictVersion
-    compatibility: StrictVersion
+    version: VersionValue
+    compatibility: VersionValue
     filename: Path
     version_def: CellInfo
     encoding: str

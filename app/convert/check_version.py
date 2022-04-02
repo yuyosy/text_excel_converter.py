@@ -1,4 +1,3 @@
-from distutils.version import StrictVersion
 import json
 from logging import getLogger
 from pathlib import Path
@@ -10,7 +9,7 @@ from openpyxl import Workbook
 
 from .exceptions import DefinisionsFileException
 from .class_definitions import CellInfo, DefinisionsFileInfo
-
+from util.version_value import VersionValue
 
 def check_workbook_version(workbook: Workbook, config: ConfigDefinitions) -> Tuple[Union[DefinisionsFileInfo, None], Union[DefinisionsFileInfo, None]]:
     applogger = getLogger('app')
@@ -23,7 +22,7 @@ def check_workbook_version(workbook: Workbook, config: ConfigDefinitions) -> Tup
             continue
 
         if config.version != '*':
-            if StrictVersion(config.version) == info.version:
+            if VersionValue(config.version) == info.version:
                 current = latest = info
             if current and latest and info.compatibility == latest.compatibility and info.version > latest.version:
                 latest = info
@@ -35,10 +34,10 @@ def check_workbook_version(workbook: Workbook, config: ConfigDefinitions) -> Tup
             nf = cell.number_format.split('.')
             if len(nf) == 2:
                 num_format_string = f'0{nf[0].count("0")}.{nf[1].count("0")}f'
-                if StrictVersion(f'{val:{num_format_string}}') == info.version:
+                if VersionValue(f'{val:{num_format_string}}') == info.version:
                     current = latest = info
             else:
-                if StrictVersion(val) == info.version:
+                if VersionValue(val) == info.version:
                     current = latest = info
             if current and latest and info.compatibility == latest.compatibility and info.version > latest.version:
                 latest = info
@@ -49,8 +48,8 @@ def listup(config: ConfigDefinitions) -> List[DefinisionsFileInfo]:
     applogger = getLogger('app')
     applogger.info(config)
     files = Path(config.folder).glob(config.file_pattern)
-    latest_version = StrictVersion('0.0')
-    current_version = StrictVersion('0.0')
+    latest_version = VersionValue('0.0')
+    current_version = VersionValue('0.0')
 
     definisions_file_list: List[DefinisionsFileInfo] = []
 
@@ -60,7 +59,7 @@ def listup(config: ConfigDefinitions) -> List[DefinisionsFileInfo]:
     for file in files:
         with file.open('r', encoding=config.encoding) as f:
             data = json.load(f)
-        current_version = StrictVersion(str(data.get('format_version', '0.0')))
+        current_version = VersionValue(str(data.get('format_version', '0.0')))
         if current_version > latest_version:
             latest_version = current_version
         def_cell_info = data.get('format_definition_cell')
@@ -70,7 +69,7 @@ def listup(config: ConfigDefinitions) -> List[DefinisionsFileInfo]:
         defs_file_info = DefinisionsFileInfo(
             name=data.get('name'),
             version=current_version,
-            compatibility=StrictVersion(str(data.get('format_compatibility', '0.0'))),
+            compatibility=VersionValue(str(data.get('format_compatibility', '0.0'))),
             filename=file,
             version_def=cell_info,
             encoding=config.encoding,
