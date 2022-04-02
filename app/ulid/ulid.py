@@ -83,6 +83,10 @@ class ULID:
         """Convert the :class:`ULID` to a :class:`uuid.UUID`."""
         return uuid.UUID(bytes=self.bytes)
 
+    def to_uuid_str(self) -> str:
+        """Convert the :class:`ULID` to a :class:`uuid.UUID`."""
+        return str(uuid.UUID(bytes=self.bytes))
+
     def __repr__(self) -> str:
         return f"ULID({self!s})"
 
