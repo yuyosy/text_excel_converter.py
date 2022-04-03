@@ -36,6 +36,8 @@ class VersionValue(LooseVersion):
         self.version = tuple(cm)
         self.vstring = '.'.join(map(str, cm))
 
+    def __repr__(self) -> str:
+        return f"VersionValue('{str(self)}')"
 
-if __name__ == '__main__':
-    print(ord('z'))
+    def __str__(self) -> str:
+        return self.vstring
