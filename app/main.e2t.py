@@ -40,7 +40,7 @@ if __name__ == '__main__':
         if not appconfig:
             raise Exception            
         converter = ExcelToText(appconfig)
-        converter.read(workbook)
+        converter.read(workbook, filename=file)
         converter.write(resource_path('data/output/1.0.json'))
     except DefinisionsFileException as err:
         applogger.exception(err)

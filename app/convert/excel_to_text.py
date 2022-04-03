@@ -7,13 +7,15 @@ from config.config_class import ConfigApp
 from openpyxl.workbook.workbook import Workbook
 
 from .check_version import check_workbook_version
-from .converter import Converter
 from .class_definitions import Definitions
+from .converter import Converter
 from .load_definitions import load_definisions
 from .read_keyvalue import read_keyvalue
 from .read_table import read_table
+from .set_metadata import set_metadata
 
 applogger = getLogger('app')
+filelogger = getLogger('file')
 
 
 class ExcelToText(Converter):
@@ -25,7 +27,7 @@ class ExcelToText(Converter):
             'table': read_table
         }
 
-    def read(self, workbook: Workbook) -> None:
+    def read(self, workbook: Workbook, *, filename:Path) -> None:
         applogger.info('@read')
         current, latest = check_workbook_version(workbook, self.config.options.definitions)
         applogger.info('@checked workbook version')
@@ -34,16 +36,17 @@ class ExcelToText(Converter):
         if not current:
             raise Exception
         self.definition_data = load_definisions(current)
-        applogger.debug(self.definition_data)
+        filelogger.debug(self.definition_data)
 
         for name in self.definition_data.includes:
             applogger.info(f'Processing: {name}')
             definitions = self.definition_data.definitions.get(name, None)
             if not definitions or not self.read_action.get(definitions.type) or workbook[definitions.sheet] is None:
                 continue
-            read_action: Callable[[Workbook, Definitions], Dict[str, Any]] = self.read_action.get(definitions.type, lambda: print('Unknown function'))
-            for k, v in read_action(workbook, definitions):
+            action: Callable[[Workbook, Definitions], Dict[str, Any]] = self.read_action.get(definitions.type, lambda: print('Unknown function'))
+            for k, v in action(workbook, definitions):
                 self.data.set(k, v)
+        set_metadata(self.data, self.definition_data, filename)
 
     def write(self, path: Path) -> None:
         applogger.info('@write')

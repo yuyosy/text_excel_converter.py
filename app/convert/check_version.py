@@ -37,7 +37,7 @@ def check_workbook_version(workbook: Workbook, config: ConfigDefinitions) -> Tup
                 if VersionValue(f'{val:{num_format_string}}') == info.version:
                     current = latest = info
             else:
-                if VersionValue(val) == info.version:
+                if VersionValue(str(val)) == info.version:
                     current = latest = info
             if current and latest and info.compatibility == latest.compatibility and info.version > latest.version:
                 latest = info

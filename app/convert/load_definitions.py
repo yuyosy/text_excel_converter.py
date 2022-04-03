@@ -8,4 +8,6 @@ from .class_definitions import DefinisionsFileInfo, DefinitionsData
 def load_definisions(info: DefinisionsFileInfo) -> DefinitionsData:
     with info.filename.open('r', encoding=info.encoding) as f:
         data = json.load(f)
-    return from_dict(data_class=DefinitionsData, data=data)
+    dfsdata = from_dict(data_class=DefinitionsData, data=data)
+    dfsdata.file_name = info.filename
+    return dfsdata

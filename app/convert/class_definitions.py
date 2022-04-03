@@ -40,6 +40,7 @@ class Definitions:
 
 @dataclass
 class DefinitionsData():
+    # Parameters listed in file
     # Required
     name: str
     format_version: str
@@ -55,3 +56,6 @@ class DefinitionsData():
     file_datetime_format: Optional[str]
     output_filename: Optional[str]
     excludes: Optional[List[str]]
+    
+    # Additional Parameters in program
+    file_name: Optional[Path]
