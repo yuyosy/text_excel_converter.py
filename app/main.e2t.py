@@ -17,7 +17,7 @@ def set_parser() -> ArgumentParser:
     parser.add_argument('-c', '--config', metavar='<Config Path>', default=resource_path('config.yaml'))
     parser.add_argument('-i', '--input', metavar='<Input Path>')
     parser.add_argument('-o', '--output', metavar='<Output Path>')
-    parser.add_argument('-m', '--mode', metavar='<Preset Mode>', default='excel_to_text')
+    parser.add_argument('-m', '--mode', metavar='<Preset Mode>', default='default')
     return parser
 
 
