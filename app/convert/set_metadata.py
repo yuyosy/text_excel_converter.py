@@ -11,7 +11,7 @@ from .class_metadata import Metadata
 from .get_hash import get_json_hash
 
 
-def set_metadata(data: DataObject, definitions_data: DefinitionsData, filename:Path) -> None:
+def set_metadata(data: DataObject, definitions_data: DefinitionsData, filename:Path, mode:str) -> None:
     metadata = Metadata()
     now = datetime.now()
     metadata.data_id = str(id) if (id := data.get('$metadata.data_id')) else str(uuid4())
@@ -21,7 +21,11 @@ def set_metadata(data: DataObject, definitions_data: DefinitionsData, filename:P
     metadata.datetime_created = dt if isinstance(dt := data.get('$metadata.datetime_created'), datetime) else now
     metadata.datetime_modified = dt if isinstance(dt := data.get('$metadata.datetime_modified'), datetime) else now
     metadata.datetime_generated_excel = dt if isinstance(dt := data.get('$metadata.datetime_generated_excel'), datetime) else None
-    metadata.datetime_generated_text = now
+    metadata.datetime_generated_text = dt if isinstance(dt := data.get('$metadata.datetime_generated_text'), datetime) else None
+    if mode == 'excel':
+        metadata.datetime_generated_excel = now
+    elif mode == 'text':
+        metadata.datetime_generated_text = now
 
     metadata.name = definitions_data.name
     metadata.format_version = VersionValue(definitions_data.format_version)

@@ -46,7 +46,7 @@ class ExcelToText(Converter):
             action: Callable[[Workbook, Definitions], Dict[str, Any]] = self.read_action.get(definitions.type, lambda: print('Unknown function'))
             for k, v in action(workbook, definitions):
                 self.data.set(k, v)
-        set_metadata(self.data, self.definition_data, filename)
+        set_metadata(self.data, self.definition_data, filename, 'text')
 
     def write(self, path: Path) -> None:
         applogger.info('@write')
