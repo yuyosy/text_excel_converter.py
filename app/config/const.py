@@ -4,9 +4,9 @@ name: default_config
 # アプリケーション設定
 
 presets:
-    excel_to_text:
-        name: Excel To Text
-        description: Excel to Text
+    default:
+        name: Excel-Text Convert
+        description: Excel <--> Text
         options:
             definitions:
                 folder: 'definitions'
