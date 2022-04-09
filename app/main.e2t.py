@@ -35,10 +35,12 @@ if __name__ == '__main__':
         # file = input('Input>>') if args.input is None else args.input
         file = resource_path('data/input/1.0.xlsx') # -------------DEBUG
 
-        workbook = load_workbook(file.as_posix(), read_only=True, data_only=True)
         appconfig = config.presets.get(args.mode)
         if not appconfig:
-            raise Exception            
+            raise Exception
+        
+        workbook = load_workbook(file.as_posix(), read_only=True, data_only=True)
+        
         converter = ExcelToText(appconfig)
         converter.read(workbook, filename=file)
         converter.write(resource_path('data/output/1.0.json'))
