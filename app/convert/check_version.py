@@ -1,7 +1,7 @@
 import json
 from logging import getLogger
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import json
 from config.config_class import ConfigDefinitions
@@ -43,6 +43,27 @@ def check_workbook_version(workbook: Workbook, config: ConfigDefinitions) -> Tup
                 latest = info
     return current, latest
 
+
+def check_datafile_version(datadict: Dict[str, Any], config: ConfigDefinitions) -> Tuple[Union[DefinisionsFileInfo, None], Union[DefinisionsFileInfo, None]]:
+    applogger = getLogger('app')
+    current: Union[DefinisionsFileInfo, None] = None
+    latest: Union[DefinisionsFileInfo, None] = None
+
+    format_version = datadict.get('format_version', None)
+    for info in listup(config):
+        applogger.debug(info)
+
+        if config.version != '*':
+            if VersionValue(config.version) == info.version:
+                current = latest = info
+            if current and latest and info.compatibility == latest.compatibility and info.version > latest.version:
+                latest = info
+        elif VersionValue(str(format_version)) == info.version:
+            current = latest = info
+        if current and latest and info.compatibility == latest.compatibility and info.version > latest.version:
+            latest = info
+        
+    return current, latest
 
 def listup(config: ConfigDefinitions) -> List[DefinisionsFileInfo]:
     applogger = getLogger('app')
