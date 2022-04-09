@@ -4,6 +4,8 @@ data
 *.conf
 *.ini
 *.yaml
+*.json
+*.xlsx
 build/build/
 
 
