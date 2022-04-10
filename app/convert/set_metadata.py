@@ -14,14 +14,11 @@ from .get_hash import get_json_hash
 
 def format_datetime(datetimedata: Union[str, datetime]) -> Union[datetime, None]:
     if isinstance(datetimedata, datetime):
-        print('datetime')
         return datetimedata
     elif isinstance(datetimedata, str):
         try:
-            print('try')
             return datetime.strptime(datetimedata, DATETIME_FORMAT)
         except:
-            print('except')
             return None
 
 
