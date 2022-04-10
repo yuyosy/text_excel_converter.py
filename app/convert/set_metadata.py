@@ -1,5 +1,6 @@
 from datetime import datetime
 from pathlib import Path
+from typing import Union
 from uuid import uuid4
 
 from dataobject.data_object import DataObject
@@ -7,21 +8,33 @@ from ulid.ulid import ULID
 from util.version_value import VersionValue
 
 from .class_definitions import DefinitionsData
-from .class_metadata import Metadata
+from .class_metadata import DATETIME_FORMAT, Metadata
 from .get_hash import get_json_hash
 
 
-def set_metadata(data: DataObject, definitions_data: DefinitionsData, filename:Path, mode:str) -> None:
+def format_datetime(datetimedata: Union[str, datetime]) -> Union[datetime, None]:
+    if isinstance(datetimedata, datetime):
+        print('datetime')
+        return datetimedata
+    elif isinstance(datetimedata, str):
+        try:
+            print('try')
+            return datetime.strptime(datetimedata, DATETIME_FORMAT)
+        except:
+            print('except')
+            return None
+
+
+def set_metadata(data: DataObject, definitions_data: DefinitionsData, filename: Path, mode: str) -> None:
     metadata = Metadata()
     now = datetime.now()
     metadata.data_id = str(id) if (id := data.get('$metadata.data_id')) else str(uuid4())
     metadata.chronological_id_current = ULID()
     metadata.chronological_id_previous = ULID.from_uuid_str(id) if (id := data.get('$metadata.chronological_id_current')) else None
-
-    metadata.datetime_created = dt if isinstance(dt := data.get('$metadata.datetime_created'), datetime) else now
-    metadata.datetime_modified = dt if isinstance(dt := data.get('$metadata.datetime_modified'), datetime) else now
-    metadata.datetime_generated_excel = dt if isinstance(dt := data.get('$metadata.datetime_generated_excel'), datetime) else None
-    metadata.datetime_generated_text = dt if isinstance(dt := data.get('$metadata.datetime_generated_text'), datetime) else None
+    metadata.datetime_created = dt if isinstance(dt := format_datetime(data.get('$metadata.datetime_created')), datetime) else now
+    metadata.datetime_modified = dt if isinstance(dt := format_datetime(data.get('$metadata.datetime_modified')), datetime) else now
+    metadata.datetime_generated_excel = dt if isinstance(dt := format_datetime(data.get('$metadata.datetime_generated_excel')), datetime) else None
+    metadata.datetime_generated_text = dt if isinstance(dt := format_datetime(data.get('$metadata.datetime_generated_text')), datetime) else None
     if mode == 'excel':
         metadata.datetime_generated_excel = now
     elif mode == 'text':
@@ -39,6 +52,5 @@ def set_metadata(data: DataObject, definitions_data: DefinitionsData, filename:P
     if metadata.data_hash_current != metadata.data_hash_previous:
         metadata.datetime_modified = now
         metadata.data_version.increment('1')
-
 
     data.update({'$metadata': metadata.todict()})
