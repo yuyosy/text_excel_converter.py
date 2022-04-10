@@ -1,7 +1,7 @@
 import json
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Iterator, Tuple
 
 from config.config_class import ConfigApp
 from openpyxl.workbook.workbook import Workbook
@@ -43,7 +43,7 @@ class ExcelToText(Converter):
             definitions = self.definition_data.definitions.get(name, None)
             if not definitions or not self.read_action.get(definitions.type) or workbook[definitions.sheet] is None:
                 continue
-            action: Callable[[Workbook, Definitions], Dict[str, Any]] = self.read_action.get(definitions.type, lambda: print('Unknown function'))
+            action: Callable[[Workbook, Definitions], Iterator[Tuple[str, Any]]] = self.read_action.get(definitions.type, lambda: print('Unknown function'))
             for k, v in action(workbook, definitions):
                 self.data.set(k, v)
         set_metadata(self.data, self.definition_data, filename, 'text')

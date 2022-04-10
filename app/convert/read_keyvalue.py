@@ -1,5 +1,5 @@
 
-from typing import Any, Generator, Tuple
+from typing import Any, Iterator, Tuple
 
 from openpyxl.workbook.workbook import Workbook
 
@@ -11,7 +11,7 @@ from .util_sheet_index import (to_columns_indexes_tuple,
                                to_relative_column_index)
 
 
-def read_keyvalue(workbook: Workbook, definitions: Definitions) -> Generator[Tuple[str, Any], None, None]:
+def read_keyvalue(workbook: Workbook, definitions: Definitions) -> Iterator[Tuple[str, Any]]:
     sheet = workbook[definitions.sheet]
     key_list = get_key_list(definitions.data)
 
@@ -32,6 +32,7 @@ def read_keyvalue(workbook: Workbook, definitions: Definitions) -> Generator[Tup
         value = marshalling(val_cell.value, definitions.data.get(key))
         if value is FormatType.PASS:
             continue
-        yield (f'{parent}.{escape_str(key)}' if (parent := definitions.parent) else escape_str(key), value)
+        k = f'{parent}.{escape_str(key)}' if (parent := definitions.parent) else escape_str(key)
+        yield (k, value)
         if key_cell.value == definitions.endkeyif:
             break

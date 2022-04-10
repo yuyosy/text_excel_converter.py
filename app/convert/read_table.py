@@ -1,5 +1,5 @@
 
-from typing import Any, Generator, List, Tuple
+from typing import Any, Iterator, List, Tuple
 
 from openpyxl.workbook.workbook import Workbook
 
@@ -11,7 +11,7 @@ from .util_sheet_index import (to_columns_indexes_tuple,
                                to_relative_column_index)
 
 
-def read_table(workbook: Workbook, definitions: Definitions) -> Generator[Tuple[str, Any], None, None]:
+def read_table(workbook: Workbook, definitions: Definitions) -> Iterator[Tuple[str, Any]]:
     sheet = workbook[definitions.sheet]
     key_list = get_key_list(definitions.data)
 
