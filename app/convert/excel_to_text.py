@@ -21,13 +21,13 @@ filelogger = getLogger('file')
 class ExcelToText(Converter):
     def __init__(self, config: ConfigApp) -> None:
         super().__init__(config)
-        
+
         self.read_action: Dict[str, Callable] = {
             'key-value': read_keyvalue,
             'table': read_table
         }
 
-    def read(self, workbook: Workbook, *, filename:Path) -> None:
+    def read(self, workbook: Workbook, *, filename: Path) -> None:
         applogger.info('@read')
         current, latest = check_workbook_version(workbook, self.config.options.definitions)
         applogger.info('@checked workbook version')
@@ -43,13 +43,14 @@ class ExcelToText(Converter):
             definitions = self.definition_data.definitions.get(name, None)
             if not definitions or not self.read_action.get(definitions.type) or workbook[definitions.sheet] is None:
                 continue
-            action: Callable[[Workbook, Definitions], Iterator[Tuple[str, Any]]] = self.read_action.get(definitions.type, lambda: print('Unknown function'))
+            action: Callable[[Workbook, Definitions], Iterator[Tuple[str, Any]]
+                             ] = self.read_action.get(definitions.type, lambda: print('Unknown function'))
             for k, v in action(workbook, definitions):
                 self.data.set(k, v)
         set_metadata(self.data, self.definition_data, filename, 'text')
 
     def write(self, path: Path) -> None:
         applogger.info('@write')
-    
+
         with path.open('w', encoding='utf-8') as f:
             f.write(json.dumps(self.data.asattrdict(), indent=4, ensure_ascii=False, default=str))
