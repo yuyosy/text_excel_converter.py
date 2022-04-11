@@ -1,12 +1,11 @@
-from fileinput import filename
-import os
 import sys
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from logging import getLogger
 
 from applogging.logger import default_logger_config, set_logger_config
 from config.config import init_config
-from convert.exceptions import DefinisionsFileException
+from config.exceptions import ConfigException
+from convert.exceptions import ConvertException
 from convert.load_datafile import load_textfile
 from convert.text_to_excel import TextToExcel
 from util.resource_path import resource_path
@@ -44,13 +43,16 @@ if __name__ == '__main__':
 
         converter = TextToExcel(appconfig)
         converter.read(datadict, filename=file)
-        converter.write(resource_path('data/output/1.0.xlsx'))
+        converter.write(resource_path('data/output/output-1.0.xlsx'))
 
-    except DefinisionsFileException as err:
+    except ConvertException as err:
         applogger.exception(err)
-        exit_code = 21
+        exit_code = err.code
+    except KeyboardInterrupt:
+        applogger.info('keyboard Interrupt! (Ctrl+C)')
+        exit_code = 2
     except Exception as err:
         applogger.exception(err)
         exit_code = 1
-    applogger.info('Finished')
+    applogger.info(f'Finished{"!" if exit_code == 0 else " in failure."}')
     sys.exit(exit_code)

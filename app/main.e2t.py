@@ -1,14 +1,14 @@
-import os
+import sys
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from logging import getLogger
-import sys
 
 from openpyxl import load_workbook
 
 from applogging.logger import default_logger_config, set_logger_config
 from config.config import init_config
+from config.exceptions import ConfigException
 from convert.excel_to_text import ExcelToText
-from convert.exceptions import DefinisionsFileException
+from convert.exceptions import ConvertException
 from util.resource_path import resource_path
 
 
@@ -44,11 +44,15 @@ if __name__ == '__main__':
         converter = ExcelToText(appconfig)
         converter.read(workbook, filename=file)
         converter.write(resource_path('data/output/1.0.json'))
-    except DefinisionsFileException as err:
+
+    except ConvertException as err:
         applogger.exception(err)
-        exit_code = 21
+        exit_code = err.code
+    except KeyboardInterrupt:
+        applogger.info('keyboard Interrupt! (Ctrl+C)')
+        exit_code = 2
     except Exception as err:
         applogger.exception(err)
         exit_code = 1
-    applogger.info('Finished')
+    applogger.info(f'Finished{"!" if exit_code == 0 else " in failure."}')
     sys.exit(exit_code)
