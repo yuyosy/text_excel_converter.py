@@ -75,7 +75,7 @@ def listup(config: ConfigDefinitions) -> List[DefinisionsFileInfo]:
     definisions_file_list: List[DefinisionsFileInfo] = []
 
     if not files:
-        raise DefinisionsFileException('Cannot find definisions files in %s (%s)', config.folder, config.file_pattern)
+        raise DefinisionsFileException(11, f'Cannot find definisions files in {config.folder} ({config.file_pattern})')
 
     for file in files:
         with file.open('r', encoding=config.encoding) as f:
