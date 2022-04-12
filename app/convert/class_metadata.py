@@ -6,7 +6,8 @@ from typing import Any, Dict, Optional
 from ulid.ulid import ULID
 from util.version_value import VersionValue
 
-DATETIME_FORMAT = '%Y/%m/%d %H:%M:%S'
+from .const import DATETIME_FORMAT
+
 
 @dataclass
 class Metadata():
@@ -24,7 +25,6 @@ class Metadata():
     data_version: Optional[VersionValue] = None
     data_hash_current: Optional[str] = None
     data_hash_previous: Optional[str] = None
-
 
     def todict(self) -> Dict[str, Any]:
         return {
