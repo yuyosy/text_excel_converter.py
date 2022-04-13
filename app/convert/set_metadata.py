@@ -22,7 +22,7 @@ def format_datetime(datetimedata: Union[str, datetime]) -> Union[datetime, None]
             return None
 
 
-def set_metadata(data: DataObject, definitions_data: DefinitionsData, filename: Path, mode: str) -> None:
+def set_metadata(data: DataObject, definitions_data: DefinitionsData, filename: Path, mode: str) -> Metadata:
     metadata = Metadata()
     now = datetime.now()
     metadata.data_id = str(id) if (id := data.get('$metadata.data_id')) else str(uuid4())
@@ -51,3 +51,4 @@ def set_metadata(data: DataObject, definitions_data: DefinitionsData, filename: 
         metadata.data_version.increment('1')
 
     data.update({'$metadata': metadata.todict()})
+    return metadata
