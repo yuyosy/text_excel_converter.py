@@ -42,7 +42,7 @@ class TextToExcel(Converter):
             raise Exception
         self.definition_data = load_definisions(current)
         filelogger.debug(self.definition_data)
-        set_metadata(self.data, self.definition_data, filename, 'excel')
+        self.metadata = set_metadata(self.data, self.definition_data, filename, 'excel')
         template_path = resource_path(self.config.options.templates.folder, self.definition_data.template_name)
         if template_path.exists():
             self.workbook = load_workbook(template_path.as_posix())
