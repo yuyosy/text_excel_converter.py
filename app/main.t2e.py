@@ -1,6 +1,7 @@
 import sys
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from logging import getLogger
+from pathlib import Path
 
 from applogging.logger import default_logger_config, set_logger_config
 from config.config import init_config
@@ -8,6 +9,10 @@ from config.exceptions import ConfigException
 from convert.exceptions import ConvertException
 from convert.load_datafile import load_textfile
 from convert.text_to_excel import TextToExcel
+from convert.util_filename import (placeholder_to_savename,
+                                   set_savename_datetime,
+                                   setup_filename_placeholder,
+                                   sourcepath_to_placeholder)
 from util.resource_path import resource_path
 
 
@@ -17,7 +22,16 @@ def set_parser() -> ArgumentParser:
     parser.add_argument('-i', '--input', metavar='<Input Path>')
     parser.add_argument('-o', '--output', metavar='<Output Path>')
     parser.add_argument('-m', '--mode', metavar='<Preset Mode>', default='default')
+    parser.add_argument('-ndt', '--no-datetime', action='store_false')
     return parser
+
+
+def make_savename(converter: TextToExcel, sourcefile: Path) -> str:
+    tmpl_placeholder = setup_filename_placeholder(converter.definition_data, converter.data)
+    src_placeholder = sourcepath_to_placeholder(sourcefile)
+    save_name = placeholder_to_savename(tmpl_placeholder, src_placeholder)
+    save_name = set_savename_datetime(save_name, converter.metadata)
+    return save_name+'.xlsx'
 
 
 if __name__ == '__main__':
@@ -39,7 +53,6 @@ if __name__ == '__main__':
             raise Exception
 
         datadict = load_textfile(file)
-        print(datadict)
 
         converter = TextToExcel(appconfig)
         converter.read(datadict, filename=file)
