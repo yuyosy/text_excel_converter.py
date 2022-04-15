@@ -13,6 +13,7 @@ class Converter():
     config: ConfigApp
     data: DataObject
     definition_data: DefinitionsData
+    metadata: Metadata
 
     def __init__(self, config: ConfigApp) -> None:
         self.config = config
