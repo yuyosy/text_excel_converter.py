@@ -6,7 +6,7 @@ from pathlib import Path
 from applogging.logger import default_logger_config, set_logger_config
 from config.config import init_config
 from config.exceptions import ConfigException
-from convert.exceptions import ConvertException
+from convert.exceptions import ConverterBaseException, DataInputException, DataIOException
 from convert.load_datafile import load_textfile
 from convert.text_to_excel import TextToExcel
 from convert.util_filename import (placeholder_to_savename,
@@ -47,6 +47,8 @@ if __name__ == '__main__':
         set_logger_config(config.logging)
         # file = input('Input>>') if args.input is None else args.input
         file = resource_path('data/input/1.0.json')  # -------------DEBUG
+        if not file.exists():
+            raise DataInputException(9, f'Input file nout found: {file.as_posix()}')
 
         appconfig = config.presets.get(args.mode)
         if not appconfig:
@@ -57,8 +59,10 @@ if __name__ == '__main__':
         converter = TextToExcel(appconfig)
         converter.read(datadict, filename=file)
         converter.write(resource_path('data/output/output-1.0.xlsx'))
-
-    except ConvertException as err:
+    except DataIOException as err:
+        applogger.error(err)
+        exit_code = err.code
+    except ConverterBaseException as err:
         applogger.exception(err)
         exit_code = err.code
     except KeyboardInterrupt:

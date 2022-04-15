@@ -1,3 +1,4 @@
+from genericpath import exists
 import sys
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from logging import getLogger
@@ -9,7 +10,7 @@ from applogging.logger import default_logger_config, set_logger_config
 from config.config import init_config
 from config.exceptions import ConfigException
 from convert.excel_to_text import ExcelToText
-from convert.exceptions import ConvertException
+from convert.exceptions import ConverterBaseException, DataIOException, DataInputException
 from convert.util_filename import (placeholder_to_savename,
                                    set_savename_datetime,
                                    setup_filename_placeholder,
@@ -48,6 +49,8 @@ if __name__ == '__main__':
         set_logger_config(config.logging)
         # file = input('Input>>') if args.input is None else args.input
         file = resource_path('data/input/1.0.xlsx')  # -------------DEBUG
+        if not file.exists():
+            raise DataInputException(9, f'Input file not found: {file.as_posix()}')
 
         appconfig = config.presets.get(args.mode)
         if not appconfig:
@@ -58,8 +61,10 @@ if __name__ == '__main__':
         converter = ExcelToText(appconfig)
         converter.read(workbook, filename=file)
         converter.write(resource_path('data/output/1.0.json'))
-
-    except ConvertException as err:
+    except DataIOException as err:
+        applogger.error(err)
+        exit_code = err.code
+    except ConverterBaseException as err:
         applogger.exception(err)
         exit_code = err.code
     except KeyboardInterrupt:
