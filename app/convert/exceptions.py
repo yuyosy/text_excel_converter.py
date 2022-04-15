@@ -1,4 +1,4 @@
-class ConvertException(Exception):
+class ConverterBaseException(Exception):
     def __init__(self, code, msg):
         self.code = code
         self.msg = msg
@@ -6,14 +6,30 @@ class ConvertException(Exception):
     def __str__(self):
         return self.msg
 
-class DefinisionsFileException(ConvertException):
+
+class DefinisionsFileException(ConverterBaseException):
     pass
 
-class ExcelToTextException(ConvertException):
+
+class DataConvertException(ConverterBaseException):
     pass
 
-class TextToExcelException(ConvertException):
+
+class ExcelToTextException(DataConvertException):
     pass
 
-class DataOutputException(ConvertException):
+
+class TextToExcelException(DataConvertException):
+    pass
+
+
+class DataIOException(ConverterBaseException):
+    pass
+
+
+class DataInputException(DataIOException):
+    pass
+
+
+class DataOutputException(DataIOException):
     pass
