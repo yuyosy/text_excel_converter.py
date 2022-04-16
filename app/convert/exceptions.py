@@ -7,10 +7,12 @@ class ConverterBaseException(Exception):
         return self.msg
 
 
+# DefinisionsFile
 class DefinisionsFileException(ConverterBaseException):
     pass
 
 
+# Data Convert
 class DataConvertException(ConverterBaseException):
     pass
 
@@ -23,6 +25,7 @@ class TextToExcelException(DataConvertException):
     pass
 
 
+# Data IO
 class DataIOException(ConverterBaseException):
     pass
 
