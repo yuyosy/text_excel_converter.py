@@ -75,7 +75,7 @@ def sourcepath_to_placeholder(path: Union[Path, str], datetime_format: str = '')
 
 def placeholder_to_savename(tmpl_placeholder: str, src_placeholder: str, include_datetime: bool = True) -> str:
     if not include_datetime:
-        tmpl_placeholder.replace('${generate_datetime}', '')
+        tmpl_placeholder = tmpl_placeholder.replace('${generate_datetime}', '')
     savename = tmpl_placeholder
     savename = savename.replace('${source_basename}', src_placeholder.replace('${generate_datetime}', ''))
     return savename
