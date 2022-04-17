@@ -1,4 +1,3 @@
-from genericpath import exists
 import sys
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from logging import getLogger
@@ -8,9 +7,10 @@ from openpyxl import load_workbook
 
 from applogging.logger import default_logger_config, set_logger_config
 from config.config import init_config
-from config.exceptions import ConfigException
+from config.exceptions import ConfigBaseException, ConfigFileException
 from convert.excel_to_text import ExcelToText
-from convert.exceptions import ConverterBaseException, DataIOException, DataInputException
+from convert.exceptions import (ConverterBaseException, DataInputException,
+                                DataIOException)
 from convert.util_filename import (placeholder_to_savename,
                                    set_savename_datetime,
                                    setup_filename_placeholder,
@@ -28,18 +28,25 @@ def set_parser() -> ArgumentParser:
     return parser
 
 
-def make_savename(converter: ExcelToText, sourcefile: Path) -> str:
+def make_savename(converter: ExcelToText, sourcefile: Path, include_datetime: bool = True) -> str:
     tmpl_placeholder = setup_filename_placeholder(converter.definition_data, converter.data)
     src_placeholder = sourcepath_to_placeholder(sourcefile)
-    save_name = placeholder_to_savename(tmpl_placeholder, src_placeholder)
+    save_name = placeholder_to_savename(tmpl_placeholder, src_placeholder, include_datetime)
     save_name = set_savename_datetime(save_name, converter.metadata)
     return save_name+'.json'
 
 
 if __name__ == '__main__':
+    version = 'dev0.1'
     exit_code = 0
+
+    appinfo = f'ExcelToText Converter [ver.{version}]'
+    print(appinfo)
+
     default_logger_config()
     applogger = getLogger('app')
+    filelogger = getLogger('file')
+    filelogger.info(appinfo)
 
     parser = set_parser()
     args = parser.parse_args()
@@ -47,24 +54,25 @@ if __name__ == '__main__':
     try:
         config = init_config(args.config, 'utf-8')
         set_logger_config(config.logging)
+        appconfig = config.presets.get(args.mode)
+        if not appconfig:
+            raise ConfigFileException(99, f'No matching preset found: {args.mode}')
+
         # file = input('Input>>') if args.input is None else args.input
         file = resource_path('data/input/1.0.xlsx')  # -------------DEBUG
         if not file.exists():
             raise DataInputException(9, f'Input file not found: {file.as_posix()}')
 
-        appconfig = config.presets.get(args.mode)
-        if not appconfig:
-            raise Exception
-
         workbook = load_workbook(file.as_posix(), read_only=True, data_only=True)
 
         converter = ExcelToText(appconfig)
         converter.read(workbook, filename=file)
-        converter.write(resource_path('data/output/1.0.json'))
-    except DataIOException as err:
+        output = file.with_name(make_savename(converter, file, args.no_datetime)) if args.output is None else resource_path(args.output)
+        converter.write(output)
+    except (ConfigFileException, DataIOException) as err:
         applogger.error(err)
         exit_code = err.code
-    except ConverterBaseException as err:
+    except (ConfigBaseException, ConverterBaseException) as err:
         applogger.exception(err)
         exit_code = err.code
     except KeyboardInterrupt:
