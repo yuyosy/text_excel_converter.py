@@ -9,8 +9,8 @@ from applogging.logger import default_logger_config, set_logger_config
 from config.config import init_config
 from config.exceptions import ConfigBaseException, ConfigFileException
 from convert.excel_to_text import ExcelToText
-from convert.exceptions import (ConverterBaseException, DataInputException,
-                                DataIOException)
+from convert.exceptions import (ConverterBaseException, DataConvertException,
+                                DataInputException, DataIOException)
 from convert.util_filename import (placeholder_to_savename,
                                    set_savename_datetime,
                                    setup_filename_placeholder,
@@ -69,7 +69,7 @@ if __name__ == '__main__':
         converter.read(workbook, filename=file)
         output = file.with_name(make_savename(converter, file, args.no_datetime)) if args.output is None else resource_path(args.output)
         converter.write(output)
-    except (ConfigFileException, DataIOException) as err:
+    except (ConfigFileException, DataConvertException, DataIOException) as err:
         applogger.error(err)
         exit_code = err.code
     except (ConfigBaseException, ConverterBaseException) as err:

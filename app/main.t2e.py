@@ -6,8 +6,8 @@ from pathlib import Path
 from applogging.logger import default_logger_config, set_logger_config
 from config.config import init_config
 from config.exceptions import ConfigBaseException, ConfigFileException
-from convert.exceptions import (ConverterBaseException, DataInputException,
-                                DataIOException)
+from convert.exceptions import (ConverterBaseException, DataConvertException,
+                                DataInputException, DataIOException)
 from convert.load_datafile import load_textfile
 from convert.text_to_excel import TextToExcel
 from convert.util_filename import (placeholder_to_savename,
@@ -68,7 +68,7 @@ if __name__ == '__main__':
         converter.read(datadict, filename=file)
         output = file.with_name(make_savename(converter, file, args.no_datetime)) if args.output is None else resource_path(args.output)
         converter.write(output)
-    except (ConfigFileException, DataIOException) as err:
+    except (ConfigFileException, DataConvertException, DataIOException) as err:
         applogger.error(err)
         exit_code = err.code
     except (ConfigBaseException, ConverterBaseException) as err:
