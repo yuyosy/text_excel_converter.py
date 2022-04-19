@@ -5,6 +5,8 @@ from logging import getLogger
 from openpyxl import load_workbook
 
 from applogging.logger import default_logger_config, set_logger_config
+from base.build_datetime import BUILD_DATE, BUILD_TIME
+from base.input_fileinfo import FileType, InputFileInfo
 from config.config import init_config
 from config.exceptions import ConfigBaseException, ConfigFileException
 from convert.converter import Converter
@@ -17,7 +19,6 @@ from convert.util_filename import (placeholder_to_savename,
                                    set_savename_datetime,
                                    setup_filename_placeholder,
                                    sourcepath_to_placeholder)
-from util.input_fileinfo import FileType, InputFileInfo
 from util.resource_path import resource_path
 
 
@@ -44,12 +45,15 @@ if __name__ == '__main__':
     exit_code = 0
 
     appinfo = f'Text-Excel Converter [ver.{version}]'
+    builfinfo = f'Build: {BUILD_DATE}, {BUILD_TIME}'
     print(appinfo)
+    print(builfinfo)
 
     default_logger_config()
     applogger = getLogger('app')
     filelogger = getLogger('file')
     filelogger.info(appinfo)
+    filelogger.info(builfinfo)
 
     parser = set_parser()
     args = parser.parse_args()
