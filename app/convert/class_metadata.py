@@ -8,9 +8,11 @@ from util.version_value import VersionValue
 
 from .const import DATETIME_FORMAT
 
+metadata_format = '1.0'
 
 @dataclass
 class Metadata():
+    metadata_format: str = metadata_format
     data_id: Optional[str] = None
     chronological_id_current: Optional[ULID] = None
     chronological_id_previous: Optional[ULID] = None
@@ -28,6 +30,7 @@ class Metadata():
 
     def todict(self) -> Dict[str, Any]:
         return {
+            'metadata_format': metadata_format if self.metadata_format is None else self.metadata_format,
             'data_id': None if self.data_id is None else self.data_id,
             'chronological_id_current': None if self.chronological_id_current is None else self.chronological_id_current.to_uuid_str(),
             'chronological_id_previous': None if self.chronological_id_previous is None else self.chronological_id_previous.to_uuid_str(),
