@@ -65,9 +65,7 @@ if __name__ == '__main__':
         if not appconfig:
             raise ConfigFileException(99, f'No matching preset found: {args.mode}')
 
-        # file = input('Input>>') if args.input is None else args.input
-        # file = resource_path('data/input/1.0.json')  # -------------DEBUG
-        file = resource_path('data/input/1.0.xlsx')  # -------------DEBUG
+        file = resource_path(input('Input>>') if args.input is None else args.input)
         if not file.exists():
             raise DataInputException(9, f'Input file not found: {file.as_posix()}')
 

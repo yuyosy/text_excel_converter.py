@@ -10,7 +10,7 @@ from .exceptions import ConfigBaseException, ConfigFileException
 
 def init_config(config_path: Path, encoding: str = 'utf-8') -> Config:
     try:
-        create_config(config_path, encoding)  # ------------- DEBUG
+        # create_config(config_path, encoding)  # ------------- DEBUG
         if not config_path.exists():
             create_config(config_path, encoding)
         return load_config(config_path, encoding)
