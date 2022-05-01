@@ -14,6 +14,9 @@ from typing import Sequence
 from .constants import (BYTES_LEN, RANDOMNESS_LEN, RANDOMNESS_REPR_LEN,
                         REPR_LEN, TIMESTAMP_LEN, TIMESTAMP_REPR_LEN)
 
+# The encoding and decoding arithmetics are based on the implementation of RobThree
+# https://github.com/RobThree/NUlid/blob/89f5a9fc827d191ae5adafe42547575ed3a47723/NUlid/Ulid.cs#L168
+
 ENCODE: str = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 DECODE: Sequence[int] = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
                          0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,

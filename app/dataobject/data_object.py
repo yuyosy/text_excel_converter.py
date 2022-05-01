@@ -1,3 +1,12 @@
+# 
+# This code inspired by works distributed under Copyright (c) 2014 Carlos Escribano Rey (MIT License).
+# 
+# inspired by carlosescri's DottedDict Library.
+# 
+# carlosescri/DottedDict
+#     https://github.com/carlosescri/DottedDict
+# 
+
 import re
 from abc import ABCMeta, abstractmethod
 from collections.abc import MutableMapping, MutableSequence
