@@ -1,71 +1,74 @@
 import re
-from typing import (Any, Dict, List, Generator, ItemsView, Iterator, KeysView,
-                    Mapping, Tuple, Union, ValuesView, cast)
+from abc import ABCMeta, abstractmethod
+from collections.abc import MutableMapping, MutableSequence
+from typing import Any, Dict, Iterator, List, Tuple, Union
+
+SEPARATOR_REGEX = r'(?<!\\)(\.)'
 
 
-class AttributeDataObject(Dict[str, Any]):
-    def __getattr__(self, key: Any) -> Any:
-        try:
-            return self[key]
-        except KeyError:
-            raise AttributeError(key)
-
-    def __setattr__(self, key: Any, value: Any) -> None:
-        self[key] = value
+def is_dotted_key(key: str) -> bool:
+    return len(re.findall(SEPARATOR_REGEX, key)) > 0
 
 
-class DataObject:
-    def __init__(self, data: Dict[str, Any] = {}, *,
-                 lowercase: bool = False,
-                 separator_escape: str = r'(?<!\\)\.'
-                 ) -> None:
-        self.lowercase = lowercase
-        self.separator_escape = separator_escape
-        self._dotted_dict: Dict[str, Any] = self._flatten(data)
+def split_key_string(key: str, max_keys: int = 0) -> List[str]:
+    parts = [x for x in re.split(SEPARATOR_REGEX, key) if x != "."]
+    result = []
+    while len(parts) > 0:
+        if max_keys > 0 and len(result) == max_keys:
+            break
+        result.append(parts.pop(0))
 
-    # Property
+    if len(parts) > 0:
+        result.append(".".join(parts))
+    return result
 
-    @property
-    def lowercase(self):
-        return self.__lowercase
 
-    @lowercase.setter
-    def lowercase(self, lowercase: bool):
-        if type(lowercase) != bool:
-            raise TypeError('lowercase invalid type')
-        self.__lowercase = lowercase
+def make(initial: Union[Dict[str, Any], List[Any], None] = None) -> Any:
+    if isinstance(initial, list):
+        return DottedList(initial)
+    elif isinstance(initial, dict):
+        return DottedDict(initial)
+    else:
+        return initial
 
-    @property
-    def separator_escape(self):
-        return self.__separator_escape.pattern
 
-    @separator_escape.setter
-    def separator_escape(self, separator_escape: str):
-        self.__separator_escape = re.compile(separator_escape)
+def make_by_index(dotted_key: str) -> Any:
+    if not isinstance(dotted_key, str):
+        next_key = str(dotted_key)
+    elif not is_dotted_key(dotted_key):
+        next_key = dotted_key
+    else:
+        next_key, _ = split_key_string(dotted_key, 1)
+
+    return make([] if isinstance(next_key, int) else {})
+
+
+class DataObject():
+
+    def __init__(self, initial: Union[Dict[str, Any], List[Any]] = {}) -> None:
+        self.data: BaseDataObject = DottedDict({}) if (d := make(initial)) is None else d
 
     # Public Instance Methods
-    # Like the built-in dict type.
-
-    def set(self, key: str, value: Any = None) -> None:
-        self._dotted_dict[key] = value
-
-    def get(self, key: str, default: Any = None) -> Union[Dict[str, Any], Any]:
-        return self._dotted_dict.get(key, default)
-
-    def update(self, data: Dict[str, Any]) -> None:
-        self._dotted_dict.update(self._flatten(data))
-
-    def setdefault(self, key: str, default: Any = None) -> Any:
+    def get(self, key: Union[str, int], default: Any = None) -> Union['BaseDataObject', Any]:
         try:
-            return self[key]
+            return self.data.__getitem__(key)  # type: ignore
         except KeyError:
-            self[key] = default
-        return self[key]
+            return default
 
-    def copy(self) -> 'DataObject':
-        return DataObject(self._dotted_dict)
+    def set(self, key: Union[str, int], value: Any) -> None:
+        self.data.__setitem__(key, value)  # type: ignore
 
-    def pop(self, key: str, value: Any = None) -> Any:
+    def update(self, value: Dict[str, Any]) -> None:
+        if isinstance(self.data, DottedDict) and isinstance(value, dict):
+            data = iter(value.items())
+            for key, value in data:
+                self.data[key] = make(value)
+
+    def insert(self, index, value: Any) -> None:
+        if isinstance(self.data, DottedList):
+            return self.data.insert(index, value)
+
+    def pop(self, key: Union[str, int], value: Any = None) -> Union['BaseDataObject', Any]:
         try:
             value = self[key]
             del self[key]
@@ -74,159 +77,263 @@ class DataObject:
                 raise
         return value
 
-    def catchup(self, key: str) -> Union['DataObject', Any]:
-        d = self._get_children(key)
-        return DataObject(d) if isinstance(d, (dict, DataObject)) else d
-
-    def keys(self) -> Union['DataObject', Any, KeysView[str]]:
-        try:
-            return self['keys']
-        except KeyError:
-            return cast(KeysView[str], list({'.'.join(re.split(self.separator_escape, k)[:1]) for k in set(self.asdict().keys())}))
-
-    def values(self) -> Union['DataObject', Any, ValuesView[Any]]:
-        try:
-            return self['values']
-        except KeyError:
-            return dict(self.items()).values()
-
-    def items(self) -> Union['DataObject', ItemsView[str, Any]]:
-        try:
-            return self['items']
-        except KeyError:
-            keys = cast(KeysView[str], self.keys())
-            return {k: self._get_children(k) for k in keys}.items()
-
-    def asdict(self) -> Dict[str, Any]:
-        return self._dotted_dict
-
-    def asattrdict(self) -> AttributeDataObject:
-        return AttributeDataObject(self._unflatten())
-
-    # Internal Instance Methods
-
-    def _flatten_items(self, flat_dict: Dict[str, Any], data: Dict[str, Any], *, depth: int, parent: str = '') -> bool:
-        has_item = False
-        for key, value in data.items():
-            has_item = True
-            if not parent:
-                flat_key = key
-            else:
-                flat_key = f'{parent}.{key}'
-            if isinstance(value, Dict):
-                has_child = self._flatten_items(flat_dict, value, depth=depth + 1, parent=flat_key)
-                if has_child or not isinstance(value, tuple):
-                    continue
-            if flat_key in flat_dict.keys():
-                raise ValueError(f'duplicated key {flat_key}')
-            flat_dict[flat_key] = value
-        return has_item
-
-    def _flatten(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        flat_dict: Dict[str, Any] = {}
-        self._flatten_items(flat_dict, data, depth=1)
-        return flat_dict
-
-    def _unflattern_items(self, data: Dict[str, Any], keys: List[str], value: Any) -> None:
-        assert keys
-        if data is None:
-            return
-        key = keys[0]
-        if len(keys) == 1:
-            if key in data:
-                raise ValueError(f'duplicated key {key}')
-            data[key] = value
-            return
-        data = data.setdefault(key, {})
-        self._unflattern_items(data, keys[1:], value)
-
-    def _unflatten(self) -> Dict[str, Any]:
-        data: Dict[str, Any] = {}
-        for flat_key, value in self._dotted_dict.items():
-            key_tuple = re.split(self.separator_escape, flat_key)
-            self._unflattern_items(data, key_tuple, value)
-        return data
-
-    def _iter_item(self, data: Mapping[str, Any], key: str) -> Generator[Tuple[str, Any], None, None]:
-        for k, v in data.items():
-            if k.startswith(key + '.'):
-                yield k, v
-
-    def _get_items(self, data: Dict[str, Any], key: str) -> Dict[str, Any]:
-        if self.lowercase:
-            return {k[(len(key) + 1):].lower(): v for k, v in data.items() for k, v in self._iter_item(data, key)}
-        else:
-            return {k[(len(key) + 1):]: v for k, v in self._iter_item(data, key)}
-
-    def _get_children(self, key: str) -> Union[Dict[str, Any], Any]:
-        data = {k[(len(key) + 1):]: v for k, v in self._iter_item(self._dotted_dict, key)}
-        if not data:
-            attributes = re.split(self.separator_escape, key)
-            if len(attributes) == 1:
-                return self._dotted_dict.get(key, {})
-            data = self._dotted_dict
-            while attributes:
-                p = attributes[0]
-                d = self._get_items(data, p)
-                if d == {}:
-                    return data.get(p, {}) if len(attributes) == 1 else {}
-                data = d
-                attributes = attributes[1:]
-        return data
+    def to_plain(self) -> Any:
+        return self.data.to_plain()
 
     # Magic Methods
-    # Like the built-in dict type.
 
     def __len__(self) -> int:
-        return len(self.keys())
-
-    def __getattr__(self, key: str) -> Any:
-        try:
-            return self[key]
-        except KeyError:
-            raise AttributeError(key)
-
-    def __getitem__(self, item: str) -> Union['DataObject', Any]:
-        v = self._get_children(item)
-        if v == {}:
-            raise KeyError(f'"{item}" key not found')
-        if isinstance(v, dict):
-            return DataObject(v)
-        else:
-            return v
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        self.update({key: value})
-
-    def __delitem__(self, key: str) -> None:
-        remove: List[str] = []
-        for k in self._dotted_dict:
-            kl = k.lower() if self.lowercase else k
-            if kl == key or kl.startswith(key + '.'):
-                remove.append(k)
-        if not remove:
-            raise KeyError(f'"{key}" key not found')
-        for k in remove:
-            del self._dotted_dict[k]
+        return len(self.data)
 
     def __iter__(self) -> Iterator[Tuple[str, Any]]:
-        return iter(self.items())
-
-    def __reversed__(self) -> Iterator[Tuple[str, Any]]:
-        return iter(reversed(self.items()))
-
-    def __contains__(self, key: str) -> bool:
-        try:
-            self[key]
-            return True
-        except KeyError:
-            return False
-
-    def __eq__(self, other: Any) -> bool:
-        return self.asdict() == DataObject(other).asdict()
+        return iter(self.data)
 
     def __repr__(self) -> str:
-        return f'<DataObject: {hex(id(self))}>'
+        return repr(self.data)
 
-    def __str__(self) -> str:
-        return str({k: v for k, v in sorted(self.asdict().items())})
+    def __getitem__(self, key: Union[str, int]) -> Union['BaseDataObject', Any]:
+        return self.data.__getitem__(key)  # type: ignore
+
+    def __setitem__(self, key: Union[str, int], value: Any) -> None:
+        return self.data.__setitem__(key, value)  # type: ignore
+
+    def __delitem__(self, key: Union[str, int]) -> None:
+        return self.data.__delitem__(key)  # type: ignore
+
+
+class BaseDataObject(object, metaclass=ABCMeta):
+
+    def __init__(self, initial):
+        if not isinstance(initial, list) and not isinstance(initial, dict):
+            raise ValueError('initial value must be list or dict')
+
+        self._validate_initial_value(initial)
+
+        self._data = initial
+
+        if isinstance(initial, list):
+            data = enumerate(initial)
+        else:
+            data = iter(initial.items())
+
+        for key, value in data:
+            try:
+                self._data[key] = make(value)
+            except ValueError:
+                pass
+
+    def _validate_initial_value(self, initial: Union[Dict[str, Any], List[Any], None]) -> None:
+        if isinstance(initial, list):
+            for item in initial:
+                self._validate_initial_value(item)
+        elif isinstance(initial, dict):
+            for key, item in iter(initial.items()):
+                if is_dotted_key(key):
+                    raise ValueError(f'{key} is not a valid key')
+                self._validate_initial_value(item)
+
+    @abstractmethod
+    def to_plain(self) -> Any:
+        pass
+
+    # Magic Methods
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __iter__(self) -> Iterator[Tuple[str, Any]]:
+        return iter(self._data)
+
+    def __repr__(self) -> str:
+        return repr(self._data)
+
+    @abstractmethod
+    def __getitem__(self, key: Union[str, int]) -> Union['BaseDataObject', Any]:
+        pass
+
+    @abstractmethod
+    def __setitem__(self, key: Union[str, int], value: Any) -> None:
+        pass
+
+    @abstractmethod
+    def __delitem__(self, key: Union[str, int]) -> None:
+        pass
+
+
+class DottedList(BaseDataObject, MutableSequence):
+
+    def __init__(self, initial: Union[Dict[str, Any], List[Any], None] = None):
+        self._data: List
+        BaseDataObject.__init__(self, [] if initial is None else list(initial))
+
+    def insert(self, index, value):
+        self._data.insert(index, value)
+
+    def to_plain(self) -> Any:
+        result = list(self)
+        for index, value in enumerate(result):
+            if isinstance(value, BaseDataObject):
+                result[index] = value.to_plain()
+        return result
+
+    # Magic Methods
+
+    def __getitem__(self, index: Union[str, int]) -> Union[BaseDataObject, Any]:
+        if isinstance(index, slice):
+            return self._data[index]
+
+        if isinstance(index, int) or (isinstance(index, str) and index.isdigit()):
+            print(int(index))
+            return self._data[int(index)]
+
+        elif isinstance(index, str) and is_dotted_key(index):
+            my_index, alt_index = split_key_string(index, 1)
+            target = self._data[int(my_index)]
+
+            if not isinstance(target, BaseDataObject):
+                raise IndexError(f'cannot get "{alt_index}" in "{my_index}" ({repr(target)})')
+            return target[alt_index]
+
+        else:
+            raise IndexError('cannot get %s in %s' % (index, repr(self._data)))
+
+    def __setitem__(self, index: Union[str, int], value: Any) -> None:
+        if isinstance(index, int) or (isinstance(index, str) and index.isdigit()):
+            if int(index) not in self._data and int(index) == len(self._data):
+                self._data.append(make(value))
+            else:
+                self._data[int(index)] = make(value)
+
+        elif isinstance(index, str) and is_dotted_key(index):
+            my_index, alt_index = split_key_string(index, 1)
+
+            if int(my_index) not in self._data and int(my_index) == len(self._data):
+                self._data.append(make_by_index(alt_index))
+
+            if not isinstance(self[int(my_index)], BaseDataObject):
+                raise IndexError(f'cannot set {alt_index} in {my_index} ({repr(self[int(my_index)])})')
+
+            self._data[int(my_index)][alt_index] = make(value)
+
+        else:
+            raise IndexError(f'cannot use {index} as index in {repr(self._data)}')
+
+    def __delitem__(self, index: Union[str, int]):
+        if isinstance(index, int) or (isinstance(index, str) and index.isdigit()):
+            del self._data[int(index)]
+
+        elif isinstance(index, str) and is_dotted_key(index):
+            my_index, alt_index = split_key_string(index, 1)
+            target = self._data[int(my_index)]
+
+            if not isinstance(target, BaseDataObject):
+                raise IndexError(f'cannot delete {alt_index} in {my_index} ({repr(target)})')
+
+            del target[alt_index]
+
+        else:
+            raise IndexError(f'cannot delete {index} in {repr(self._data)}')
+
+
+class DottedDict(BaseDataObject, MutableMapping):
+
+    def __init__(self, initial: Union[Dict[str, Any], List[Any], None] = None):
+        self._data: Dict[str, Any]
+        BaseDataObject.__init__(self, {} if initial is None else dict(initial))
+
+    def update(self, data: Dict[str, Any]) -> None:
+        self._data.update(data)
+
+    def to_plain(self):
+        result = dict(self)
+
+        for key, value in iter(result.items()):
+            if isinstance(value, BaseDataObject):
+                result[key] = value.to_plain()
+
+        return result
+
+    # Magic Methods
+
+    def __getitem__(self, k: str) -> Union[BaseDataObject, Any]:
+        key = self.__keytransform__(k)
+
+        if not isinstance(k, str) or not is_dotted_key(key):
+
+            try:
+                return self._data[key]
+            except KeyError as e:
+                raise KeyError(e)
+
+        my_key, alt_key = split_key_string(key, 1)
+        target = self._data[my_key]
+
+        if not isinstance(target, BaseDataObject):
+            raise KeyError(f'cannot get  {alt_key} in {my_key} ({repr(target)})')
+
+        return target[alt_key]
+
+    def __setitem__(self, k: str, value: Any) -> None:
+        key = self.__keytransform__(k)
+
+        if not isinstance(k, str):
+            raise KeyError('keys must be str')
+        elif not is_dotted_key(key):
+            self._data[key] = make(value)
+        else:
+            my_key, alt_key = split_key_string(key, 1)
+
+            if my_key not in self._data:
+                self._data[my_key] = make_by_index(alt_key)
+
+            if self._data[my_key] is None:
+                self._data[my_key] = DottedDict()
+            self._data[my_key][alt_key] = value
+
+    def __delitem__(self, k: str) -> None:
+        key = self.__keytransform__(k)
+
+        if not isinstance(k, str) or not is_dotted_key(key):
+            del self._data[key]
+
+        else:
+            my_key, alt_key = split_key_string(key, 1)
+            target = self._data[my_key]
+
+            if not isinstance(target, BaseDataObject):
+                raise KeyError(f'cannot delete "{alt_key}" in "{my_key}" ({repr(target)})')
+
+            del target[alt_key]
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        if key in self.__dict__ or key == '_data':
+            object.__setattr__(self, key, value)
+        else:
+            self.__setitem__(key, value)
+
+    def __delattr__(self, key: str) -> None:
+        if key in self.__dict__ or key == '_data':
+            object.__delattr__(self, key)
+        else:
+            self.__delitem__(key)
+
+    def __contains__(self, k: str) -> bool:
+        key = self.__keytransform__(k)
+
+        if not isinstance(k, str) or not is_dotted_key(key):
+            return self._data.__contains__(key)
+
+        my_key, alt_key = split_key_string(key, 1)
+        if not self._data.__contains__(my_key):
+            return False
+        target: Dict[str, Any] = self._data[my_key]
+
+        if not isinstance(target, BaseDataObject):
+            return False
+
+        return alt_key in target
+
+    def __keytransform__(self, key: str) -> str:
+        return key
+
+    __getattr__ = __getitem__
