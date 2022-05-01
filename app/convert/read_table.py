@@ -30,18 +30,24 @@ def read_table(workbook: Workbook, definitions: Definitions) -> Iterator[Tuple[s
         if not key_cell.value:
             continue
         items: List[Tuple[str, Any]] = []
-        for head, item in zip(header, row):
+        zipped = list(zip(header, row))
+        keycol_head, keycol_cell = zipped.pop(key_col)
+        keycol_header_key = key_list.get(keycol_head, '')
+        keycol_items = marshalling(keycol_cell.value, definitions.data.get(keycol_header_key))
+        for head, item in zipped:
             header_key = key_list.get(head, '')
             if not header_key:
                 continue
             items.append((header_key, marshalling(item.value, definitions.data.get(header_key))))
         key = f'{parent}.{escape_str(key_cell.value)}' if (parent := definitions.parent) else escape_str(key_cell.value)
-
-        if not any([item[1] for item in items[val_col:]]):
+        if not any([item[1] for item in items]):
             yield key, None
             if key_cell.value == definitions.endkeyif:
                 break
             continue
+        
+        if keycol_header_key:
+            yield f'{key}.{escape_str(keycol_header_key)}', keycol_items
         for k, v in items:
             if k and v is not FormatType.PASS:
                 yield f'{key}.{escape_str(k)}', v
