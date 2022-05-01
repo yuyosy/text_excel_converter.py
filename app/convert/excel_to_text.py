@@ -53,4 +53,4 @@ class ExcelToText(Converter):
         applogger.info('@write')
 
         with path.open('w', encoding='utf-8') as f:
-            f.write(json.dumps(self.data.asattrdict(), indent=4, ensure_ascii=False, default=str))
+            f.write(json.dumps(self.data.to_plain(), indent=4, ensure_ascii=False, default=str))

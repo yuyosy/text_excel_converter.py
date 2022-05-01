@@ -42,7 +42,7 @@ def set_metadata(data: DataObject, definitions_data: DefinitionsData, filename: 
     metadata.definitions_file = definitions_data.file_name
     metadata.source_data = filename
     metadata.data_version = VersionValue(str(ver)) if (ver := data.get('$metadata.data_version')) else VersionValue('0')
-    attrdict = data.asattrdict()
+    attrdict = data.to_plain()
     attrdict.pop('$metadata', None)
     metadata.data_hash_current = get_json_hash(attrdict)
     metadata.data_hash_previous = str(hs) if (hs := data.get('$metadata.data_hash_current')) else None
