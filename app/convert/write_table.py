@@ -6,7 +6,7 @@ from openpyxl.cell import Cell
 from openpyxl.workbook.workbook import Workbook
 
 from .class_definitions import Definitions
-from .escape_str import escape_str
+from .escape_str import escape_str, unescape_str
 from .marshal_data_format import FormatType, unmarshalling
 from .util_convert import get_key_list
 from .util_sheet_index import (to_columns_indexes_tuple,
@@ -24,7 +24,10 @@ def write_table(workbook: Workbook, data: DataObject, definitions: Definitions) 
     begin_row = 0 if (c := definitions.begin_row) is None else c
 
     header = [col.value for col in sheet[header_row][min_col-1:max_col]]
-    table_data = data.catchup(parent).asattrdict() if (parent := definitions.parent) else data.asattrdict()
+    t_data = data.get(parent) if (parent := definitions.parent) else data
+    if not t_data:
+        return
+    table_data = t_data.to_plain()
     max_row = begin_row+len(table_data)
     
     for data_key, row in zip(table_data, sheet.iter_rows(min_row=begin_row, max_row=max_row, min_col=min_col, max_col=max_col)):
@@ -39,7 +42,7 @@ def write_table(workbook: Workbook, data: DataObject, definitions: Definitions) 
             if not header_key:
                 continue
             if definitions.overwrite_keycol and header_key == key_header_value:
-                cells_data.append((cell, unmarshalling(data_key, definitions.data.get(header_key))))
+                cells_data.append((cell, unmarshalling(unescape_str(data_key), definitions.data.get(header_key))))
             else:
                 cells_data.append((cell, unmarshalling(d.get(header_key), definitions.data.get(header_key))))
                 
