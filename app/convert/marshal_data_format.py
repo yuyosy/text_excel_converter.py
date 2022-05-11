@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Flag, auto
 from typing import Any, Dict, Tuple
 
-from .const import DATETIME_FORMAT
+from .const import DATETIME_FORMAT, DATETIME_FORMAT_HYPHEN
 
 
 class FormatType(Flag):
@@ -45,7 +45,10 @@ def marshalling_format_action(name: str, cell_val: Any, value: Any) -> Tuple[boo
     elif name == 'none' and cell_val == value:
         return True, None
     elif name == 'datetime' and value:
-        return True, datetime.strptime(str(value), DATETIME_FORMAT if cell_val is None else cell_val)
+        try:
+            return True, datetime.strptime(str(value), DATETIME_FORMAT if cell_val is None else cell_val)
+        except ValueError:
+            return True, value
     return False, value
 
 
@@ -81,5 +84,9 @@ def unmarshalling_format_action(name: str, cell_val: Any, value: Any) -> Tuple[b
     elif name == 'none' and value == None:
         return True, cell_val
     elif name == 'datetime' and value:
-        return True, datetime.strptime(str(value), DATETIME_FORMAT if cell_val is None else cell_val)
+        try:
+            dt = datetime.strptime(str(value), DATETIME_FORMAT_HYPHEN)
+            return True, dt.strftime(DATETIME_FORMAT if cell_val is None else cell_val)
+        except ValueError:
+            return True, value
     return False, value
