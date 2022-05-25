@@ -17,6 +17,7 @@ from .load_definitions import load_definisions
 from .set_metadata import set_metadata
 from .write_keyvalue import write_keyvalue
 from .write_table import write_table
+from .write_matrix import write_matrix
 
 applogger = getLogger('app')
 filelogger = getLogger('file')
@@ -28,7 +29,8 @@ class TextToExcel(Converter):
 
         self.read_action: Dict[str, Callable] = {
             'key-value': write_keyvalue,
-            'table': write_table
+            'table': write_table,
+            'matrix': write_matrix
         }
 
     def read(self, datadict: Dict[str, Any], *, filename: Path) -> None:
@@ -57,7 +59,8 @@ class TextToExcel(Converter):
             action: Callable[[Workbook, DataObject, Definitions], Iterator[Tuple[Cell, Any]]
                              ] = self.read_action.get(definitions.type, lambda: print('Unknown function'))
             for c, v in action(self.workbook, self.data, definitions):
-                c.value = v
+                if c:
+                    c.value = v
 
     def write(self, path: Path) -> None:
         applogger.info('@write')
