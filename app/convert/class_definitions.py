@@ -31,6 +31,7 @@ class Definitions:
     # Optional
     header_row: Optional[int]
     begin_row: Optional[int]
+    matrix_parent_col: Optional[Union[int, str]]
     key_col: Optional[Union[int, str]]
     value_col: Optional[Union[int, str]]
     endkeyif: Optional[Union[int, str]]
