@@ -13,6 +13,7 @@ from .load_definitions import load_definisions
 from .read_keyvalue import read_keyvalue
 from .read_table import read_table
 from .set_metadata import set_metadata
+from .read_matrix import read_matrix
 
 applogger = getLogger('app')
 filelogger = getLogger('file')
@@ -24,7 +25,8 @@ class ExcelToText(Converter):
 
         self.read_action: Dict[str, Callable] = {
             'key-value': read_keyvalue,
-            'table': read_table
+            'table': read_table,
+            'matrix': read_matrix
         }
 
     def read(self, workbook: Workbook, *, filename: Path) -> None:
