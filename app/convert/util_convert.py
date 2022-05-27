@@ -16,7 +16,7 @@ def get_key_list(data: Dict[str, Any]) -> Dict[str, str]:
     return {get_key(data.get(item)): item for item in data}
 
 
-def overwrite(option: Dict[str, Any], value: Any, data: DataObject) -> bool:
+def is_overwrite(option: Dict[str, Any], value: Any, data: DataObject) -> bool:
     if isinstance(option, dict) and (opt := option.get('overwrite', None)):
         mode = opt.get('mode', None)
         string = opt.get('string', '')
